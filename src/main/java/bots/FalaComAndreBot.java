@@ -2,7 +2,11 @@ package bots;
 
 import comandos.Comandos;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.TelegramBotsApi;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -23,6 +27,7 @@ public class FalaComAndreBot extends TelegramLongPollingBot {
 
     public void onUpdateReceived(Update update) {
         Message message = update.getMessage();
+        CallbackQuery cbq = update.getCallbackQuery();
         if(message!=null && message.hasText()){
 
 
@@ -50,6 +55,19 @@ public class FalaComAndreBot extends TelegramLongPollingBot {
 
 
         }
+         if (cbq!=null && cbq.getMessage()!=null){
+             try {
+                 onCallback(cbq.getMessage(), cbq.getData());
+                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery().setCallbackQueryId(cbq.getId());
+                 execute(answerCallbackQuery);
+             } catch (TelegramApiException e) {
+                 e.printStackTrace();
+             }
+
+
+         }
+
+
 
     }
 
@@ -66,6 +84,7 @@ public class FalaComAndreBot extends TelegramLongPollingBot {
 
     /***EVENTOS**/
     private void onStartCommand(Update update) throws TelegramApiException{
+        System.out.println(update.getMessage().getChatId());
         enviaOlaUsuario(update);
         enviaPlanosPagamento(update);
     }
@@ -77,6 +96,22 @@ public class FalaComAndreBot extends TelegramLongPollingBot {
     private void onSobre(Update update) throws TelegramApiException{
         enviaSobre(update);
     }
+
+    private void onCallback(Message message, String dados) throws TelegramApiException {
+        EditMessageText editMessageText = new EditMessageText();
+        editMessageText.setChatId(message.getChatId());
+        editMessageText.setMessageId(message.getMessageId());
+        editMessageText.setParseMode("HTML");
+
+        String novoTexto = "O resultado desse botão é " + dados + "\n\n" +
+                "O teclado sumiu, como <i>mágica</i>";
+
+        editMessageText.setText(novoTexto);
+        editMessageText.setReplyMarkup(null);
+        execute(editMessageText);
+
+    }
+
 
 
     /**** AUXILIARES **/
